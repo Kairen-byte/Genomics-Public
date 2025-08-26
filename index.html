@@ -216,6 +216,12 @@
             background: #f8f9fa;
             border-top: 1px solid #eee;
         }
+        
+        .error-message {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -267,6 +273,7 @@
                         <option value="">-- Select Flowcell --</option>
                         <!-- Options will be populated by JavaScript -->
                     </select>
+                    <div class="error-message" id="flowcellError" style="display: none;">Unable to load flowcell data</div>
                 </div>
                 
                 <div class="form-group">
@@ -275,6 +282,7 @@
                         <option value="">-- Select Cycles --</option>
                         <!-- Options will be populated by JavaScript -->
                     </select>
+                    <div class="error-message" id="cyclesError" style="display: none;">Unable to load cycles data</div>
                 </div>
                 <div class="form-group">
                     <label for="sampleType">Sample Type:</label>
@@ -515,9 +523,11 @@
             const effectiveReads = document.getElementById('effectiveReads');
             const advancedToggle = document.getElementById('advancedToggle');
             const advancedOptions = document.getElementById('advancedOptions');
+            const flowcellError = document.getElementById('flowcellError');
+            const cyclesError = document.getElementById('cyclesError');
             
-            // Initialize flowcell options based on default sequencer
-            updateFlowcells();
+            // Initialize with default sequencer
+            setTimeout(initializeWithDefaultSequencer, 100);
             
             // Update flowcells when sequencer changes
             sequencerSelect.addEventListener('change', function() {
@@ -553,25 +563,39 @@
                 }
             });
             
+            // Initialize with default sequencer
+            function initializeWithDefaultSequencer() {
+                const defaultSequencer = "Genolab M";
+                sequencerSelect.value = defaultSequencer;
+                updateFlowcells();
+                updateCycles();
+            }
+            
             // Update flowcell options based on selected sequencer
             function updateFlowcells() {
                 const sequencer = sequencerSelect.value;
                 flowcellSelect.innerHTML = '<option value="">-- Select Flowcell --</option>';
+                flowcellError.style.display = 'none';
                 
                 if (sequencer && sequencerData[sequencer]) {
-                    sequencerData[sequencer].flowcells.forEach(flowcell => {
-                        const option = document.createElement('option');
-                        option.value = flowcell.name;
-                        option.textContent = `${flowcell.name} (${flowcell.capacity}M reads)`;
-                        option.dataset.capacity = flowcell.capacity;
-                        option.dataset.cycles = JSON.stringify(flowcell.cycles);
-                        flowcellSelect.appendChild(option);
-                    });
-                    
-                    // Select the first flowcell by default
-                    if (sequencerData[sequencer].flowcells.length > 0) {
-                        flowcellSelect.selectedIndex = 1;
-                        updateCycles();
+                    try {
+                        sequencerData[sequencer].flowcells.forEach(flowcell => {
+                            const option = document.createElement('option');
+                            option.value = flowcell.name;
+                            option.textContent = `${flowcell.name} (${flowcell.capacity}M reads)`;
+                            option.dataset.capacity = flowcell.capacity;
+                            option.dataset.cycles = JSON.stringify(flowcell.cycles);
+                            flowcellSelect.appendChild(option);
+                        });
+                        
+                        // Select the first flowcell by default
+                        if (sequencerData[sequencer].flowcells.length > 0) {
+                            flowcellSelect.selectedIndex = 1;
+                            updateCycles();
+                        }
+                    } catch (error) {
+                        console.error("Error updating flowcells:", error);
+                        flowcellError.style.display = 'block';
                     }
                 }
             }
@@ -580,29 +604,35 @@
             function updateCycles() {
                 const flowcellOption = flowcellSelect.selectedOptions[0];
                 cyclesSelect.innerHTML = '<option value="">-- Select Cycles --</option>';
+                cyclesError.style.display = 'none';
                 
                 if (flowcellOption && flowcellOption.dataset.cycles) {
-                    const cycles = JSON.parse(flowcellOption.dataset.cycles);
-                    
-                    cycles.forEach(cycle => {
-                        const option = document.createElement('option');
-                        option.value = cycle;
+                    try {
+                        const cycles = JSON.parse(flowcellOption.dataset.cycles);
                         
-                        // Format the display text based on cycle count
-                        if (cycle <= 100) {
-                            option.textContent = `${cycle} cycles`;
-                        } else if (cycle <= 200) {
-                            option.textContent = `${cycle} cycles`;
-                        } else {
-                            option.textContent = `${cycle} cycles`;
+                        cycles.forEach(cycle => {
+                            const option = document.createElement('option');
+                            option.value = cycle;
+                            
+                            // Format the display text based on cycle count
+                            if (cycle <= 100) {
+                                option.textContent = `${cycle} cycles`;
+                            } else if (cycle <= 200) {
+                                option.textContent = `${cycle} cycles`;
+                            } else {
+                                option.textContent = `${cycle} cycles`;
+                            }
+                            
+                            cyclesSelect.appendChild(option);
+                        });
+                        
+                        // Select the first cycle by default if available
+                        if (cycles.length > 0) {
+                            cyclesSelect.selectedIndex = 1;
                         }
-                        
-                        cyclesSelect.appendChild(option);
-                    });
-                    
-                    // Select the first cycle by default if available
-                    if (cycles.length > 0) {
-                        cyclesSelect.selectedIndex = 1;
+                    } catch (error) {
+                        console.error("Error updating cycles:", error);
+                        cyclesError.style.display = 'block';
                     }
                 }
             }
@@ -611,7 +641,13 @@
             calculateBtn.addEventListener('click', function() {
                 // Get all input values
                 const flowcellOption = flowcellSelect.selectedOptions[0];
-                const flowcellCapacity = flowcellOption?.dataset.capacity;
+                
+                if (!flowcellOption) {
+                    alert("Please select a flowcell type");
+                    return;
+                }
+                
+                const flowcellCapacity = flowcellOption.dataset.capacity;
                 const cycles = document.getElementById('cycles').value;
                 const sampleType = document.getElementById('sampleType').value;
                 const customSize = document.getElementById('customSize').value;
