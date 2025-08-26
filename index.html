@@ -265,7 +265,6 @@
                     <label for="flowcell">Flowcell Type:</label>
                     <select id="flowcell">
                         <option value="">-- Select Flowcell --</option>
-                        <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
                 
@@ -273,7 +272,6 @@
                     <label for="cycles">Cycles (Read Length):</label>
                     <select id="cycles">
                         <option value="">-- Select Cycles --</option>
-                        <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
                 <div class="form-group">
@@ -498,7 +496,6 @@
                 }
             };
             
-            // DOM elements
             const sequencerSelect = document.getElementById('sequencer');
             const flowcellSelect = document.getElementById('flowcell');
             const cyclesSelect = document.getElementById('cycles');
@@ -516,20 +513,14 @@
             const advancedToggle = document.getElementById('advancedToggle');
             const advancedOptions = document.getElementById('advancedOptions');
             
-            // Initialize flowcell options based on default sequencer
-            updateFlowcells();
+              updateFlowcells();
             
-            // Update flowcells when sequencer changes
             sequencerSelect.addEventListener('change', function() {
                 updateFlowcells();
-                updateCycles(); // Also update cycles when sequencer changes
-            });
-            
-            // Update cycles when flowcell changes
+                updateCycles(); 
             flowcellSelect.addEventListener('change', updateCycles);
             
-            // Toggle custom size input
-            sampleTypeSelect.addEventListener('change', function() {
+               sampleTypeSelect.addEventListener('change', function() {
                 if (this.value === 'other') {
                     customSizeGroup.style.display = 'block';
                 } else {
@@ -537,14 +528,12 @@
                 }
             });
             
-            // Toggle advanced options
             includeAdvanced.addEventListener('change', function() {
                 q30Input.disabled = !this.checked;
                 duplicatesInput.disabled = !this.checked;
             });
             
-            // Toggle advanced options visibility
-            advancedToggle.addEventListener('click', function() {
+             advancedToggle.addEventListener('click', function() {
                 advancedOptions.classList.toggle('hidden');
                 if (advancedOptions.classList.contains('hidden')) {
                     advancedToggle.textContent = '+ Advanced Options';
@@ -552,8 +541,6 @@
                     advancedToggle.textContent = '- Advanced Options';
                 }
             });
-            
-            // Update flowcell options based on selected sequencer
             function updateFlowcells() {
                 const sequencer = sequencerSelect.value;
                 flowcellSelect.innerHTML = '<option value="">-- Select Flowcell --</option>';
@@ -568,15 +555,13 @@
                         flowcellSelect.appendChild(option);
                     });
                     
-                    // Select the first flowcell by default
-                    if (sequencerData[sequencer].flowcells.length > 0) {
+                if (sequencerData[sequencer].flowcells.length > 0) {
                         flowcellSelect.selectedIndex = 1;
                         updateCycles();
                     }
                 }
             }
             
-            // Update cycle options based on selected sequencer and flowcell
             function updateCycles() {
                 const flowcellOption = flowcellSelect.selectedOptions[0];
                 cyclesSelect.innerHTML = '<option value="">-- Select Cycles --</option>';
@@ -600,16 +585,13 @@
                         cyclesSelect.appendChild(option);
                     });
                     
-                    // Select the first cycle by default if available
                     if (cycles.length > 0) {
                         cyclesSelect.selectedIndex = 1;
                     }
                 }
             }
             
-            // Calculate button click
             calculateBtn.addEventListener('click', function() {
-                // Get all input values
                 const flowcellOption = flowcellSelect.selectedOptions[0];
                 const flowcellCapacity = flowcellOption?.dataset.capacity;
                 const cycles = document.getElementById('cycles').value;
@@ -620,7 +602,6 @@
                 const q30 = document.getElementById('q30').value;
                 const duplicates = document.getElementById('duplicates').value;
                 
-                // Validate inputs
                 if (!flowcellCapacity || !cycles || !sampleType || !coverage) {
                     alert("Please fill in all required fields");
                     return;
@@ -631,7 +612,6 @@
                     return;
                 }
                 
-                // Get sample size
                 let sampleSize;
                 if (sampleType === 'other') {
                     sampleSize = parseFloat(customSize);
@@ -639,25 +619,21 @@
                     sampleSize = parseFloat(document.querySelector(`#sampleType option[value="${sampleType}"]`).dataset.size);
                 }
                 
-                // Convert all values to numbers
                 const capacity = parseFloat(flowcellCapacity) * 1000000; // Convert to reads
                 const cyclesNum = parseFloat(cycles);
                 const coverageNum = parseFloat(coverage);
                 const q30Num = parseFloat(q30) / 100; // Convert to decimal
                 const duplicatesNum = 1 - (parseFloat(duplicates) / 100); // Convert to usable reads percentage
                 
-                // Perform calculations
                 const readsPerSampleValue = sampleSize * 1000000 * coverageNum / cyclesNum;
                 let sampleAmount = capacity / readsPerSampleValue;
                 
-                // Apply quality adjustments if enabled
                 let qualityAdjustment = 1;
                 if (useAdvanced) {
                     qualityAdjustment = q30Num * duplicatesNum;
                     sampleAmount = sampleAmount * qualityAdjustment;
                 }
                 
-                // Display results
                 resultValue.textContent = Math.floor(sampleAmount);
                 readsPerSample.textContent = readsPerSampleValue.toLocaleString(undefined, {maximumFractionDigits: 0});
                 totalReads.textContent = capacity.toLocaleString();
@@ -674,3 +650,4 @@
     </script>
 </body>
 </html>
+
