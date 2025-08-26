@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genomics Calculator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .calculator {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-section {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .results-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .result-box {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin: 15px 0;
+        }
+        
+        .result-label {
+            font-size: 1.2rem;
+            color: var(--dark);
+        }
+        
+        .calculation-details {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-text {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .advanced-toggle {
+            color: var(--secondary);
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .advanced-options {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Genomics Calculator</h1>
+            <p class="subtitle">Calculate optimal sample loading for your sequencing experiments</p>
+        </header>
+        
+        <div class="calculator">
+            <div class="form-section">
+                <h2>Input Parameters</h2>
+                
+                <div class="form-group">
+                    <label for="sequencer">Sequencer Model:</label>
+                    <select id="sequencer">
+                        <option value="">-- Select Sequencer --</option>
+                        <optgroup label="GeneMind" class="Genemind">
+                            <option value="FASTASeq S">FASTASeq S</option>
+                            <option value="Genolab M" selected>Genolab M</option>
+                            <option value="FASTASeq 300">FASTASeq 300</option>
+                            <option value="SURFSeq 5000">SURFSeq 5000</option>
+                            <option value="SURFSeq Q">SURFSeq Q</option>
+                        </optgroup>
+                        <optgroup label="Illumina" class="Illumina">
+                            <option value="iSeq 100">iSeq 100</option>
+                            <option value="MiSeq">MiSeq</option>
+                            <option value="NextSeq 550">NextSeq 550</option>
+                            <option value="NextSeq 1000/2000">NextSeq 1000/2000</option>
+                            <option value="NovaSeq 6000">NovaSeq 6000</option>
+                            <option value="NovaSeq X Series">NovaSeq X Series</option>
+                        </optgroup>
+                        <optgroup label="MGI" class="MGI">
+                            <option value="DNBSEQ-E25">DNBSEQ-E25</option>
+                            <option value="DNBSEQ-G99">DNBSEQ-G99</option>
+                            <option value="DNBSEQ-G50">DNBSEQ-G50</option>
+                            <option value="DNBSEQ-G400">DNBSEQ-G400</option>
+                            <option value="DNBSEQ-T1">DNBSEQ-T1</option>
+                            <option value="DNBSEQ-T7">DNBSEQ-T7</option>
+                            <option value="DNBSEQ-T10×4RS">DNBSEQ-T10×4RS</option>
+                            <option value="DNBSEQ-T20×2RS">DNBSEQ-T20×2RS</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="flowcell">Flowcell Type:</label>
+                    <select id="flowcell">
+                        <option value="">-- Select Flowcell --</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cycles">Cycles (Read Length):</label>
+                    <select id="cycles">
+                        <option value="">-- Select Cycles --</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sampleType">Sample Type:</label>
+                    <select id="sampleType">
+                        <option value="">-- Select Sample Type --</option>
+                        <option value="exome" data-size="37.5" selected>Exome (37.5 Mb)</option>
+                        <option value="genome" data-size="3100">Whole Human Genome (3,100 Mb)</option>
+                        <option value="panel" data-size="5">Targeted Panel (5 Mb)</option>
+                        <option value="rna" data-size="2100">RNA-Seq (varies, approx 70M/sample)</option>
+                        <option value="NIPT" data-size="3000">NIPT (5M unique reads)</option>
+                        <option value="other">Other (custom size)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="customSizeGroup" style="display: none;">
+                    <label for="customSize">Custom Sample Size (Mb):</label>
+                    <input type="number" id="customSize" min="0" step="0.1" placeholder="Enter size in Mb">
+                </div>
+                
+                <div class="form-group">
+                    <label for="coverage">Coverage (x):</label>
+                    <input type="number" id="coverage" min="1" value="100">
+                </div>
+                
+                <div class="advanced-toggle" id="advancedToggle">+ Advanced Options</div>
+                
+                <div class="advanced-options hidden" id="advancedOptions">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeAdvanced">
+                        <label for="includeAdvanced">Include Quality Adjustments</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="q30">Q30 Score (%):</label>
+                        <input type="number" id="q30" min="0" max="100" value="85" disabled>
+                        <p class="info-text">Percentage of bases with quality score Q30 or higher</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="duplicates">Duplicate Reads (%):</label>
+                        <input type="number" id="duplicates" min="0" max="100" value="20" disabled>
+                        <p class="info-text">Percentage of reads that are duplicates</p>
+                    </div>
+                </div>
+                
+                <button id="calculateBtn">Calculate</button>
+            </div>
+            
+            <div class="results-section">
+                <h2>Results</h2>
+                
+                <div class="result-box">
+                    <p class="result-label">Maximum Samples</p>
+                    <div class="result-value" id="resultValue">-</div>
+                    <p>can be loaded on this flowcell</p>
+                </div>
+                
+                <div class="calculation-details">
+                    <h3>Calculation Details</h3>
+                    <div class="detail-row">
+                        <span>Reads per sample:</span>
+                        <span id="readsPerSample">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Total flowcell reads:</span>
+                        <span id="totalReads">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Quality adjustment factor:</span>
+                        <span id="qualityFactor">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Effective reads:</span>
+                        <span id="effectiveReads">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Genomics Calculator v3.0 • Uses standard calculations for sequencing experiments</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sequencer, flowcell, and cycle data
+            const sequencerData = {
+                 "Genolab M": {
+                    flowcells:[
+                {name: "FCH", capacity: 500, cycles:[75, 150, 300]},
+                {name: "FCM", capacity: 250, cycles:[75, 150, 300]}
+            ]
+            },
+            "FASTASeq 300": {
+                    flowcells:[
+                {name: "FCL", capacity: 50, cycles:[100]},
+                {name: "FCM", capacity: 125, cycles:[75, 150, 300]},
+                {name: "FCH", capacity: 280, cycles:[75, 150, 300]},
+                {name: "FCP", capacity: 500, cycles:[75, 150, 300]},
+                {name: "FCX", capacity: 100, cycles:[400, 600]}
+            ]
+            },
+            "FASTASeq S": {
+                    flowcells:[
+                {name: "FCL", capacity: 20, cycles:[100, 300]},
+                {name: "FCM", capacity: 40, cycles:[100, 300]},
+                {name: "FCX", capacity: 40, cycles:[600]},
+                {name: "FCH", capacity: 80, cycles:[100, 300]}
+            ]
+            },
+            "SURFSeq 5000": {
+                    flowcells:[
+                {name: "FCM", capacity: 500, cycles:[100, 200, 300, 600]},
+                {name: "FCH", capacity: 2000, cycles:[50, 100, 200, 300]},
+                {name: "FCP", capacity: 3600, cycles:[50, 100, 200, 300]}
+            ]
+            },
+            "SURFSeq Q": {
+                    flowcells:[
+                {name: "FCH", capacity: 11700, cycles:[50, 100, 200, 300]},
+                {name: "FCM", capacity: 23300, cycles:[50, 100, 200, 300]}
+            ]
+            },
+            "NovaSeq 6000": {
+                    flowcells:[
+                {name: "SP", capacity: 1600, cycles:[100, 200, 300, 500]},
+                {name: "S1", capacity: 3200, cycles:[100, 200, 300]},
+                {name: "S2", capacity: 8200, cycles:[100, 200, 300]},
+                {name: "S4 SE", capacity: 10000, cycles:[35]},
+                {name: "S4", capacity: 20000, cycles:[200, 300]}
+            ]
+            },
+             "NovaSeq X Series": {
+                    flowcells:[
+                {name: "1,5B", capacity: 3200, cycles:[100, 200, 300]},
+                {name: "10B", capacity: 20000, cycles:[100, 200, 300]},
+                {name: "25B", capacity: 52000, cycles:[100, 200, 300]}
+            ]
+            },
+            "NextSeq 1000/2000": {
+                    flowcells:[
+                {name: "P1", capacity: 200, cycles:[100, 200, 300, 600]},
+                {name: "P2", capacity: 800, cycles:[100, 200, 300, 600]},
+                {name: "P3 - 2000 ONLY", capacity: 2400, cycles:[100, 200, 300, 600]},
+                {name: "P4 - 2000 ONLY", capacity: 3600, cycles:[100, 200, 300, 600]},
+                {name: "P1 SE", capacity: 100, cycles:[50]},
+                {name: "P2 SE", capacity: 400, cycles:[50]},
+                {name: "P3 SE - 2000 ONLY", capacity: 1200, cycles:[50]},
+                {name: "P4 SE - 2000 ONLY", capacity: 1800, cycles:[50]}
+            ]
+                },
+            "MiSeq": {
+                    flowcells:[
+                {name: "Nano PE", capacity: 2, cycles:[300, 500]},
+                {name: "Micro PE", capacity: 8, cycles:[300]},
+                {name: "v2 SE", capacity: 15, cycles:[72]},
+                {name: "v2 PE", capacity: 30, cycles:[50, 300, 500]},
+                {name: "v3 PE", capacity: 50, cycles:[150, 600]},
+            ]
+                },
+            "NextSeq 550": {
+                    flowcells:[
+                {name: "High-SE", capacity: 400, cycles:[75, 150, 300]},
+                {name: "High-PE", capacity: 800, cycles:[75, 150, 300]},
+                {name: "Mid", capacity: 260, cycles:[150, 300]}
+            ]
+                },
+                "iSeq 100": {
+                    flowcells:[
+                {name: "V2-SE", capacity: 4, cycles:[36, 50, 75]},
+                {name: "V2-PE", capacity: 8, cycles:[150, 300]}
+            ]
+                },
+                "DNBSEQ-E25": {
+                    flowcells:[
+                {name: "FCL", capacity: 25, cycles:[100, 300]}
+            ]
+                },
+                "DNBSEQ-G99": {
+                    flowcells:[
+                {name: "FCS", capacity: 40, cycles:[300]},
+                {name: "FCL", capacity: 80, cycles:[100, 300, 400, 600]},
+                {name: "FCU", capacity: 200, cycles:[100, 300, 600]}
+            ]
+                },
+                "DNBSEQ-G50": {
+                    flowcells:[
+                {name: "FCS", capacity: 100, cycles:[100, 200, 300]},
+                {name: "FCL", capacity: 500, cycles:[50, 100, 200, 300]}
+            ]
+                },
+                "DNBSEQ-G400": {
+                    flowcells:[
+                {name: "FCS", capacity: 550, cycles:[100, 200, 300, 600]},
+                {name: "FCL", capacity: 1800, cycles:[50, 100, 200, 300, 400]}
+            ]
+                },
+                "DNBSEQ-T1": {
+                    flowcells:[
+                {name: "FCS", capacity: 500, cycles:[100, 300, 600]},
+                {name: "FCM", capacity: 1000, cycles:[100, 300]},
+                {name: "FCL", capacity: 2000, cycles:[50, 100, 300]}
+            ]
+                },
+                "DNBSEQ-T7": {
+                    flowcells:[
+                {name: "FC", capacity: 5800, cycles:[50, 200, 300]}
+            ]
+                },
+                "DNBSEQ-T10×4RS": {
+                    flowcells:[
+                {name: "Slide PE100", capacity: 45000, cycles:[200]},
+                {name: "Slide PE150", capacity: 32000, cycles:[300]}
+            ]
+                },
+                 "DNBSEQ-T20×2RS": {
+                    flowcells:[
+                {name: "Slide", capacity: 40000, cycles:[200, 300]}
+            ]
+                }
+            };
+            
+            // DOM elements
+            const sequencerSelect = document.getElementById('sequencer');
+            const flowcellSelect = document.getElementById('flowcell');
+            const cyclesSelect = document.getElementById('cycles');
+            const sampleTypeSelect = document.getElementById('sampleType');
+            const customSizeGroup = document.getElementById('customSizeGroup');
+            const includeAdvanced = document.getElementById('includeAdvanced');
+            const q30Input = document.getElementById('q30');
+            const duplicatesInput = document.getElementById('duplicates');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultValue = document.getElementById('resultValue');
+            const readsPerSample = document.getElementById('readsPerSample');
+            const totalReads = document.getElementById('totalReads');
+            const qualityFactor = document.getElementById('qualityFactor');
+            const effectiveReads = document.getElementById('effectiveReads');
+            const advancedToggle = document.getElementById('advancedToggle');
+            const advancedOptions = document.getElementById('advancedOptions');
+            
+            // Initialize flowcell options based on default sequencer
+            updateFlowcells();
+            
+            // Update flowcells when sequencer changes
+            sequencerSelect.addEventListener('change', function() {
+                updateFlowcells();
+                updateCycles(); // Also update cycles when sequencer changes
+            });
+            
+            // Update cycles when flowcell changes
+            flowcellSelect.addEventListener('change', updateCycles);
+            
+            // Toggle custom size input
+            sampleTypeSelect.addEventListener('change', function() {
+                if (this.value === 'other') {
+                    customSizeGroup.style.display = 'block';
+                } else {
+                    customSizeGroup.style.display = 'none';
+                }
+            });
+            
+            // Toggle advanced options
+            includeAdvanced.addEventListener('change', function() {
+                q30Input.disabled = !this.checked;
+                duplicatesInput.disabled = !this.checked;
+            });
+            
+            // Toggle advanced options visibility
+            advancedToggle.addEventListener('click', function() {
+                advancedOptions.classList.toggle('hidden');
+                if (advancedOptions.classList.contains('hidden')) {
+                    advancedToggle.textContent = '+ Advanced Options';
+                } else {
+                    advancedToggle.textContent = '- Advanced Options';
+                }
+            });
+            
+            // Update flowcell options based on selected sequencer
+            function updateFlowcells() {
+                const sequencer = sequencerSelect.value;
+                flowcellSelect.innerHTML = '<option value="">-- Select Flowcell --</option>';
+                
+                if (sequencer && sequencerData[sequencer]) {
+                    sequencerData[sequencer].flowcells.forEach(flowcell => {
+                        const option = document.createElement('option');
+                        option.value = flowcell.name;
+                        option.textContent = `${flowcell.name} (${flowcell.capacity}M reads)`;
+                        option.dataset.capacity = flowcell.capacity;
+                        option.dataset.cycles = JSON.stringify(flowcell.cycles);
+                        flowcellSelect.appendChild(option);
+                    });
+                    
+                    // Select the first flowcell by default
+                    if (sequencerData[sequencer].flowcells.length > 0) {
+                        flowcellSelect.selectedIndex = 1;
+                        updateCycles();
+                    }
+                }
+            }
+            
+            // Update cycle options based on selected sequencer and flowcell
+            function updateCycles() {
+                const flowcellOption = flowcellSelect.selectedOptions[0];
+                cyclesSelect.innerHTML = '<option value="">-- Select Cycles --</option>';
+                
+                if (flowcellOption && flowcellOption.dataset.cycles) {
+                    const cycles = JSON.parse(flowcellOption.dataset.cycles);
+                    
+                    cycles.forEach(cycle => {
+                        const option = document.createElement('option');
+                        option.value = cycle;
+                        
+                        // Format the display text based on cycle count
+                        if (cycle <= 100) {
+                            option.textContent = `${cycle} cycles`;
+                        } else if (cycle <= 200) {
+                            option.textContent = `${cycle} cycles`;
+                        } else {
+                            option.textContent = `${cycle} cycles`;
+                        }
+                        
+                        cyclesSelect.appendChild(option);
+                    });
+                    
+                    // Select the first cycle by default if available
+                    if (cycles.length > 0) {
+                        cyclesSelect.selectedIndex = 1;
+                    }
+                }
+            }
+            
+            // Calculate button click
+            calculateBtn.addEventListener('click', function() {
+                // Get all input values
+                const flowcellOption = flowcellSelect.selectedOptions[0];
+                const flowcellCapacity = flowcellOption?.dataset.capacity;
+                const cycles = document.getElementById('cycles').value;
+                const sampleType = document.getElementById('sampleType').value;
+                const customSize = document.getElementById('customSize').value;
+                const coverage = document.getElementById('coverage').value;
+                const useAdvanced = document.getElementById('includeAdvanced').checked;
+                const q30 = document.getElementById('q30').value;
+                const duplicates = document.getElementById('duplicates').value;
+                
+                // Validate inputs
+                if (!flowcellCapacity || !cycles || !sampleType || !coverage) {
+                    alert("Please fill in all required fields");
+                    return;
+                }
+                
+                if (sampleType === 'other' && !customSize) {
+                    alert("Please enter custom sample size");
+                    return;
+                }
+                
+                // Get sample size
+                let sampleSize;
+                if (sampleType === 'other') {
+                    sampleSize = parseFloat(customSize);
+                } else {
+                    sampleSize = parseFloat(document.querySelector(`#sampleType option[value="${sampleType}"]`).dataset.size);
+                }
+                
+                // Convert all values to numbers
+                const capacity = parseFloat(flowcellCapacity) * 1000000; // Convert to reads
+                const cyclesNum = parseFloat(cycles);
+                const coverageNum = parseFloat(coverage);
+                const q30Num = parseFloat(q30) / 100; // Convert to decimal
+                const duplicatesNum = 1 - (parseFloat(duplicates) / 100); // Convert to usable reads percentage
+                
+                // Perform calculations
+                const readsPerSampleValue = sampleSize * 1000000 * coverageNum / cyclesNum;
+                let sampleAmount = capacity / readsPerSampleValue;
+                
+                // Apply quality adjustments if enabled
+                let qualityAdjustment = 1;
+                if (useAdvanced) {
+                    qualityAdjustment = q30Num * duplicatesNum;
+                    sampleAmount = sampleAmount * qualityAdjustment;
+                }
+                
+                // Display results
+                resultValue.textContent = Math.floor(sampleAmount);
+                readsPerSample.textContent = readsPerSampleValue.toLocaleString(undefined, {maximumFractionDigits: 0});
+                totalReads.textContent = capacity.toLocaleString();
+                
+                if (useAdvanced) {
+                    qualityFactor.textContent = (qualityAdjustment * 100).toFixed(1) + '%';
+                    effectiveReads.textContent = (capacity * qualityAdjustment).toLocaleString(undefined, {maximumFractionDigits: 0});
+                } else {
+                    qualityFactor.textContent = '100% (not applied)';
+                    effectiveReads.textContent = capacity.toLocaleString();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
