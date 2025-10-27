@@ -30,7 +30,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
@@ -55,11 +55,27 @@
             opacity: 0.8;
         }
         
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
         .calculator {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             padding: 30px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-panel {
+                order: -1;
+            }
         }
         
         @media (max-width: 768px) {
@@ -81,6 +97,14 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+        }
+        
+        .info-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         h2 {
@@ -222,6 +246,39 @@
             font-size: 0.9rem;
             margin-top: 5px;
         }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .info-table th, .info-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .info-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .info-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .info-table tr:hover {
+            background-color: #e9f7fe;
+        }
+        
+        .info-note {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            font-size: 0.9rem;
+        }
     </style>
     <script type="text/javascript">
     var oldOndragstart = document.ondragstart;
@@ -243,133 +300,198 @@
             <p class="subtitle">Calculate optimal sample loading for your sequencing experiments</p>
         </header>
         
-        <div class="calculator">
-            <div class="form-section">
-                <h2>Input Parameters</h2>
-                
-                <div class="form-group">
-                    <label for="sequencer">Sequencer Model:</label>
-                    <select id="sequencer">
-                        <option value="">-- Select Sequencer --</option>
-                        <optgroup label="GeneMind" class="Genemind">
-                            <option value="FASTASeq S">FASTASeq S</option>
-                            <option value="Genolab M" selected>Genolab M</option>
-                            <option value="FASTASeq 300">FASTASeq 300</option>
-                            <option value="SURFSeq 5000">SURFSeq 5000</option>
-                            <option value="SURFSeq Q">SURFSeq Q</option>
-                        </optgroup>
-                        <optgroup label="Illumina" class="Illumina">
-                            <option value="iSeq 100">iSeq 100</option>
-                            <option value="MiSeq">MiSeq</option>
-                            <option value="NextSeq 550">NextSeq 550</option>
-                            <option value="NextSeq 1000/2000">NextSeq 1000/2000</option>
-                            <option value="NovaSeq 6000">NovaSeq 6000</option>
-                            <option value="NovaSeq X Series">NovaSeq X Series</option>
-                        </optgroup>
-                        <optgroup label="MGI" class="MGI">
-                            <option value="DNBSEQ-E25">DNBSEQ-E25</option>
-                            <option value="DNBSEQ-G99">DNBSEQ-G99</option>
-                            <option value="DNBSEQ-G50">DNBSEQ-G50</option>
-                            <option value="DNBSEQ-G400">DNBSEQ-G400</option>
-                            <option value="DNBSEQ-T1">DNBSEQ-T1</option>
-                            <option value="DNBSEQ-T7">DNBSEQ-T7</option>
-                            <option value="DNBSEQ-T10×4RS">DNBSEQ-T10×4RS</option>
-                            <option value="DNBSEQ-T20×2RS">DNBSEQ-T20×2RS</option>
-                        </optgroup>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="flowcell">Flowcell Type:</label>
-                    <select id="flowcell">
-                        <option value="">-- Select Flowcell --</option>
-                        <!-- Options will be populated by JavaScript -->
-                    </select>
-                    <div class="error-message" id="flowcellError" style="display: none;">Unable to load flowcell data</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="cycles">Cycles (Read Length):</label>
-                    <select id="cycles">
-                        <option value="">-- Select Cycles --</option>
-                        <!-- Options will be populated by JavaScript -->
-                    </select>
-                    <div class="error-message" id="cyclesError" style="display: none;">Unable to load cycles data</div>
-                </div>
-                <div class="form-group">
-                    <label for="sampleType">Sample Type:</label>
-                    <select id="sampleType">
-                        <option value="">-- Select Sample Type --</option>
-                        <option value="exome" data-size="37.5" selected>Exome (37.5 Mb)</option>
-                        <option value="genome" data-size="3100">Whole Human Genome (3,100 Mb)</option>
-                        <option value="panel" data-size="5">Targeted Panel (5 Mb)</option>
-                        <option value="rna" data-size="2100">RNA-Seq (varies, approx 70M/sample)</option>
-                        <option value="NIPT" data-size="3000">NIPT (5M unique reads)</option>
-                        <option value="other">Other (custom size)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="customSizeGroup" style="display: none;">
-                    <label for="customSize">Custom Sample Size (Mb):</label>
-                    <input type="number" id="customSize" min="0" step="0.1" placeholder="Enter size in Mb">
-                </div>
-                
-                <div class="form-group">
-                    <label for="coverage">Coverage (x):</label>
-                    <input type="number" id="coverage" min="1" value="100">
-                </div>
-                
-                <div class="advanced-toggle" id="advancedToggle">+ Advanced Options</div>
-                
-                <div class="advanced-options hidden" id="advancedOptions">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="includeAdvanced">
-                        <label for="includeAdvanced">Include Quality Adjustments</label>
+        <div class="main-content">
+            <div class="calculator">
+                <div class="form-section">
+                    <h2>Input Parameters</h2>
+                    
+                    <div class="form-group">
+                        <label for="sequencer">Sequencer Model:</label>
+                        <select id="sequencer">
+                            <option value="">-- Select Sequencer --</option>
+                            <optgroup label="GeneMind" class="Genemind">
+                                <option value="FASTASeq S">FASTASeq S</option>
+                                <option value="Genolab M" selected>Genolab M</option>
+                                <option value="FASTASeq 300">FASTASeq 300</option>
+                                <option value="SURFSeq 5000">SURFSeq 5000</option>
+                                <option value="SURFSeq Q">SURFSeq Q</option>
+                            </optgroup>
+                            <optgroup label="Illumina" class="Illumina">
+                                <option value="iSeq 100">iSeq 100</option>
+                                <option value="MiSeq">MiSeq</option>
+                                <option value="NextSeq 550">NextSeq 550</option>
+                                <option value="NextSeq 1000/2000">NextSeq 1000/2000</option>
+                                <option value="NovaSeq 6000">NovaSeq 6000</option>
+                                <option value="NovaSeq X Series">NovaSeq X Series</option>
+                            </optgroup>
+                            <optgroup label="MGI" class="MGI">
+                                <option value="DNBSEQ-E25">DNBSEQ-E25</option>
+                                <option value="DNBSEQ-G99">DNBSEQ-G99</option>
+                                <option value="DNBSEQ-G50">DNBSEQ-G50</option>
+                                <option value="DNBSEQ-G400">DNBSEQ-G400</option>
+                                <option value="DNBSEQ-T1">DNBSEQ-T1</option>
+                                <option value="DNBSEQ-T7">DNBSEQ-T7</option>
+                                <option value="DNBSEQ-T10×4RS">DNBSEQ-T10×4RS</option>
+                                <option value="DNBSEQ-T20×2RS">DNBSEQ-T20×2RS</option>
+                            </optgroup>
+                        </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="q30">Q30 Score (%):</label>
-                        <input type="number" id="q30" min="0" max="100" value="85" disabled>
-                        <p class="info-text">Percentage of bases with quality score Q30 or higher</p>
+                        <label for="flowcell">Flowcell Type:</label>
+                        <select id="flowcell">
+                            <option value="">-- Select Flowcell --</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <div class="error-message" id="flowcellError" style="display: none;">Unable to load flowcell data</div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="duplicates">Duplicate Reads (%):</label>
-                        <input type="number" id="duplicates" min="0" max="100" value="20" disabled>
-                        <p class="info-text">Percentage of reads that are duplicates</p>
+                        <label for="cycles">Cycles (Read Length):</label>
+                        <select id="cycles">
+                            <option value="">-- Select Cycles --</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <div class="error-message" id="cyclesError" style="display: none;">Unable to load cycles data</div>
                     </div>
+                    <div class="form-group">
+                        <label for="sampleType">Sample Type:</label>
+                        <select id="sampleType">
+                            <option value="">-- Select Sample Type --</option>
+                            <option value="exome" data-size="37.5" selected>Exome (37.5 Mb)</option>
+                            <option value="genome" data-size="3100">Whole Human Genome (3,100 Mb)</option>
+                            <option value="panel" data-size="5">Targeted Panel (5 Mb)</option>
+                            <option value="rna" data-size="2100">RNA-Seq (varies, approx 70M/sample)</option>
+                            <option value="NIPT" data-size="3000">NIPT (5M unique reads)</option>
+                            <option value="other">Other (custom size)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="customSizeGroup" style="display: none;">
+                        <label for="customSize">Custom Sample Size (Mb):</label>
+                        <input type="number" id="customSize" min="0" step="0.1" placeholder="Enter size in Mb">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="coverage">Coverage (x):</label>
+                        <input type="number" id="coverage" min="1" value="100">
+                    </div>
+                    
+                    <div class="advanced-toggle" id="advancedToggle">+ Advanced Options</div>
+                    
+                    <div class="advanced-options hidden" id="advancedOptions">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="includeAdvanced">
+                            <label for="includeAdvanced">Include Quality Adjustments</label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="q30">Q30 Score (%):</label>
+                            <input type="number" id="q30" min="0" max="100" value="85" disabled>
+                            <p class="info-text">Percentage of bases with quality score Q30 or higher</p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="duplicates">Duplicate Reads (%):</label>
+                            <input type="number" id="duplicates" min="0" max="100" value="20" disabled>
+                            <p class="info-text">Percentage of reads that are duplicates</p>
+                        </div>
+                    </div>
+                    
+                    <button id="calculateBtn">Calculate</button>
                 </div>
                 
-                <button id="calculateBtn">Calculate</button>
+                <div class="results-section">
+                    <h2>Results</h2>
+                    
+                    <div class="result-box">
+                        <p class="result-label">Maximum Samples</p>
+                        <div class="result-value" id="resultValue">-</div>
+                        <p>can be loaded on this flowcell</p>
+                    </div>
+                    
+                    <div class="calculation-details">
+                        <h3>Calculation Details</h3>
+                        <div class="detail-row">
+                            <span>Reads per sample:</span>
+                            <span id="readsPerSample">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total flowcell reads:</span>
+                            <span id="totalReads">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Quality adjustment factor:</span>
+                            <span id="qualityFactor">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Effective reads:</span>
+                            <span id="effectiveReads">-</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="results-section">
-                <h2>Results</h2>
+            <div class="info-panel">
+                <h2>Genomics Methods Reference</h2>
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Тип анализа</th>
+                            <th>Размер целевой области</th>
+                            <th>Образец</th>
+                            <th>Типичная глубина покрытия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>WGS</td>
+                            <td>~3.2 Гб</td>
+                            <td>Кровь, ткань</td>
+                            <td>30x (зарод.), 60-100x (сом.)</td>
+                        </tr>
+                        <tr>
+                            <td>WES</td>
+                            <td>~35-60 Мб</td>
+                            <td>Кровь, ткань</td>
+                            <td>100x (зарод.), 150-200x (сом.)</td>
+                        </tr>
+                        <tr>
+                            <td>Панель генов</td>
+                            <td>~0.5 - 5 Мб</td>
+                            <td>Кровь, ткань, цтДНК</td>
+                            <td>200x - 10,000x+</td>
+                        </tr>
+                        <tr>
+                            <td>RNA-Seq</td>
+                            <td>(измеряется в прочтениях)</td>
+                            <td>Ткань, клетки</td>
+                            <td>20-100+ млн прочтений</td>
+                        </tr>
+                        <tr>
+                            <td>НИПТ (NIPT)</td>
+                            <td>Весь геном (подсчет)</td>
+                            <td>Плазма крови</td>
+                            <td>~0.1x - 1x (низкая)</td>
+                        </tr>
+                        <tr>
+                            <td>ПГТ-А</td>
+                            <td>Весь геном (подсчет)</td>
+                            <td>Биопсия эмбриона</td>
+                            <td>~0.1x - 0.5x (низкая)</td>
+                        </tr>
+                        <tr>
+                            <td>ПГТ-М</td>
+                            <td>Таргетная область / ген</td>
+                            <td>Биопсия эмбриона</td>
+                            <td>>50x (после WGA)</td>
+                        </tr>
+                        <tr>1 Гб = 1000 Мб, 1 Мб = 1000 Кб</tr>
+                    </tbody>
+                </table>
                 
-                <div class="result-box">
-                    <p class="result-label">Maximum Samples</p>
-                    <div class="result-value" id="resultValue">-</div>
-                    <p>can be loaded on this flowcell</p>
-                </div>
-                
-                <div class="calculation-details">
-                    <h3>Calculation Details</h3>
-                    <div class="detail-row">
-                        <span>Reads per sample:</span>
-                        <span id="readsPerSample">-</span>
-                    </div>
-                    <div class="detail-row">
-                        <span>Total flowcell reads:</span>
-                        <span id="totalReads">-</span>
-                    </div>
-                    <div class="detail-row">
-                        <span>Quality adjustment factor:</span>
-                        <span id="qualityFactor">-</span>
-                    </div>
-                    <div class="detail-row">
-                        <span>Effective reads:</span>
-                        <span id="effectiveReads">-</span>
-                    </div>
+                <div class="info-note">
+                    <strong>Примечание:</strong> Указанные значения покрытия являются типичными и могут варьироваться в зависимости от конкретного исследования, используемых протоколов и требуемого уровня детализации.
                 </div>
             </div>
         </div>
@@ -722,5 +844,3 @@
     </script>
 </body>
 </html>
-
-
