@@ -223,6 +223,18 @@
             margin-top: 5px;
         }
     </style>
+    <script type="text/javascript">
+    var oldOndragstart = document.ondragstart;
+    var oldOnselectstart = document.onselectstart;
+    var oldOncontextmenu = document.oncontextmenu;
+    
+    function noselect() {
+        return false;
+    }
+    document.ondragstart = noselect;
+    document.onselectstart = noselect;
+    document.oncontextmenu = noselect;
+</script>
 </head>
 <body>
     <div class="container">
@@ -710,4 +722,5 @@
     </script>
 </body>
 </html>
+
 
