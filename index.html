@@ -30,7 +30,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: 10px;
@@ -53,31 +53,13 @@
         .subtitle {
             font-size: 1rem;
             opacity: 0.8;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
+        }        
         .calculator {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             padding: 30px;
-        }
-        
-        @media (max-width: 1200px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .info-panel {
-                order: -1;
-            }
-        }
-        
+        }        
         @media (max-width: 768px) {
             .calculator {
                 grid-template-columns: 1fr;
@@ -299,8 +281,6 @@
             <h1>Genomics Calculator</h1>
             <p class="subtitle">Calculate optimal sample loading for your sequencing experiments</p>
         </header>
-        
-        <div class="main-content">
             <div class="calculator">
                 <div class="form-section">
                     <h2>Input Parameters</h2>
@@ -341,7 +321,6 @@
                         <label for="flowcell">Flowcell Type:</label>
                         <select id="flowcell">
                             <option value="">-- Select Flowcell --</option>
-                            <!-- Options will be populated by JavaScript -->
                         </select>
                         <div class="error-message" id="flowcellError" style="display: none;">Unable to load flowcell data</div>
                     </div>
@@ -350,7 +329,6 @@
                         <label for="cycles">Cycles (Read Length):</label>
                         <select id="cycles">
                             <option value="">-- Select Cycles --</option>
-                            <!-- Options will be populated by JavaScript -->
                         </select>
                         <div class="error-message" id="cyclesError" style="display: none;">Unable to load cycles data</div>
                     </div>
@@ -431,7 +409,6 @@
                     </div>
                 </div>
             </div>
-        </div>
         <div class="info-panel">
                 <h2>Genomics Methods Reference</h2>
                 <table class="info-table">
@@ -842,5 +819,6 @@
     </script>
 </body>
 </html>
+
 
 
